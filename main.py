@@ -1,38 +1,29 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from google.cloud import firestore
 import company_sentiment
-from apscheduler.schedulers.background import BackgroundScheduler
+import redis
 import json
-import datetime
-import os
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 CORS(app)
 
-db = firestore.Client()
+r = redis.Redis(host="redis", port=6379, decode_responses=True)
 
-CACHE_COLLECTION = "company_cache"
-TRACKED_COLLECTION = "tracked_companies"
+COMPANY_SET_KEY = "tracked_companies"
 
 
 def refresh_company_data(company_name):
     try:
         result = company_sentiment.company_data(company_name)
-        expires_at = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-
-        db.collection(CACHE_COLLECTION).document(company_name).set({
-            "data": json.dumps(result),
-            "expires_at": expires_at
-        })
+        r.setex(company_name, 3600, json.dumps(result))  # TTL = 1 hr
         print(f"✅ Cache refreshed for {company_name}")
     except Exception as e:
         print(f"⚠️ Failed to refresh {company_name}: {e}")
 
 
 def refresh_all_companies():
-    docs = db.collection(TRACKED_COLLECTION).stream()
-    companies = [doc.id for doc in docs]
+    companies = r.smembers(COMPANY_SET_KEY)
     print(f"Refreshing {len(companies)} companies...")
     for company in companies:
         refresh_company_data(company)
@@ -52,24 +43,13 @@ def company_data_api():
         if not company_name:
             return jsonify({"success": False, "error": "Missing company_name"}), 400
 
-        db.collection(TRACKED_COLLECTION).document(company_name).set({"active": True})
-
-        doc = db.collection(CACHE_COLLECTION).document(company_name).get()
-        if doc.exists:
-            cache_entry = doc.to_dict()
-            expires_at = cache_entry.get("expires_at")
-
-            if expires_at and expires_at > datetime.datetime.utcnow():
-                return jsonify({"success": True, "data": json.loads(cache_entry["data"])})
+        r.sadd(COMPANY_SET_KEY, company_name)
+        cached = r.get(company_name)
+        if cached:
+            return jsonify({"success": True, "data": json.loads(cached)})
 
         result = company_sentiment.company_data(company_name)
-        expires_at = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-
-        db.collection(CACHE_COLLECTION).document(company_name).set({
-            "data": json.dumps(result),
-            "expires_at": expires_at
-        })
-
+        r.setex(company_name, 3600, json.dumps(result))
         return jsonify({"success": True, "data": result})
 
     except Exception as e:
@@ -85,10 +65,14 @@ def clear_cache():
         if not company_name:
             return jsonify({"success": False, "error": "Missing company_name"}), 400
 
-        db.collection(CACHE_COLLECTION).document(company_name).delete()
-        db.collection(TRACKED_COLLECTION).document(company_name).delete()
+        # Remove cache + tracking
+        deleted = r.delete(company_name)
+        r.srem(COMPANY_SET_KEY, company_name)
 
-        return jsonify({"success": True, "message": f"Cache cleared for {company_name}"})
+        if deleted:
+            return jsonify({"success": True, "message": f"Cache cleared for {company_name}"})
+        else:
+            return jsonify({"success": False, "message": f"No cache found for {company_name}"})
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -96,12 +80,9 @@ def clear_cache():
 
 @app.route("/tracked-companies", methods=["GET"])
 def list_tracked_companies():
-    docs = db.collection(TRACKED_COLLECTION).stream()
-    companies = [doc.id for doc in docs]
+    companies = list(r.smembers(COMPANY_SET_KEY))
     return jsonify({"tracked_companies": companies})
 
 
-
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=8000, debug=True)
