@@ -1,9 +1,5 @@
 flask
 flask-cors
-flask_caching
-redis
-apscheduler
-gunicorn
 certifi
 beautifulsoup4
 requests
@@ -12,6 +8,6 @@ numpy
 pandas
 yfinance
 scikit-learn
-google
-protobuf
-google-cloud-firestore
+redis
+gunicorn
+
