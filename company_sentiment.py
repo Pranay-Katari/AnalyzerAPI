@@ -26,36 +26,7 @@ extra_lex = {
     "securities fraud": -2.7, "accounting fraud": -2.6, "wire fraud": -2.4,
     "violation": -2.2, "breach": -2.0, "non-compliance": -1.9, "infringement": -1.8,
     "sanction": -2.0, "ban": -1.8,
-    "suspension": -1.7, "revocation": -2.1, "probation": -1.6,
-    "censure": -1.8, "reprimand": -1.5, "warning": -1.3,
-    "misconduct": -2.2, "malpractice": -2.3, "negligence": -2.0,
-    "reckless": -2.1, "willful": -1.9, "intentional": -1.7,
-    "coverup": -2.2, "concealment": -2.0, "obstruction": -2.1,
-    "tampering": -2.3, "destruction of evidence": -2.5,
-    "abuse": -3.2, "sexually":-3, "harassment": -2.5, "discrimination": -2.4,
-    "exploitation": -3.0, "predator": -3.0, "assault": -3.2,
-    "sexual harassment": -3.0, "hostile environment": -2.2,
-    "retaliation": -2.1, "intimidation": -2.0, "coercion": -2.3,
-    "unsafe": -2.2, "hazardous": -2.1, "toxic": -2.0, "contamination": -2.3,
-    "exposure": -1.9, "endanger": -2.4, "harm": -1.8,
-    "injury": -2.0, "death": -2.8, "fatality": -2.9, "accident": -1.7,
-    "defective": -2.0, "faulty": -1.8, "recall": -1.9,
-    "hack": -2.2, "cybersecurity": -1.6,
-    "privacy violation": -2.1, "unauthorized access": -2.0,
-    "data theft": -2.4, "identity theft": -2.6, "phishing": -2.0,
-    "pollution": -2.1, "spill": -2.0,
-    "environmental damage": -2.2, "illegal dumping": -2.4,
-    "emissions violation": -1.9, "groundwater contamination": -2.3,
-    "manipulation": -2.5, "rigging": -2.6, "collusion": -2.4,
-    "price fixing": -2.5, "monopoly": -1.8, "antitrust": -2.0,
-    "cartel": -2.7, "conspiracy": -2.3,
-    "probe": -1.7, "inquiry": -1.5,
-    "audit": -1.3, "review": -1.1, "examination": -1.2,
-    "scrutiny": -1.4, "surveillance": -1.6, "monitoring": -1.2,
-    "failure": -1.8, "crisis": -2.0,
-    "emergency": -1.7, "disaster": -2.3, "catastrophe": -2.8,
-    "dishonest": -2.2, "deceptive": -2.1, "misleading": -1.9,
-    "false": -2.0, "lie": -2.3, "unethical": -2.1, "immoral": -2.0,
+   "lie": -2.3, "unethical": -2.1, "immoral": -2.0,
     "corrupt": -2.8, "shady": -2.0, "questionable": -1.6,
     "suspicious": -1.7, "dubious": -1.8, "illegitimate": -2.2,
     "down":-1.5, "layoffs": -1.6, "termination": -1.4, "firing": -1.5,
@@ -81,27 +52,62 @@ extra_lex = {
     "risk": -1.3, "high risk": -1.8, "headwinds": -1.6,
     "challenges": -1.4, "problems": -1.6, "troubles": -1.8,
     "accounting irregularities": -2.4, "restatement": -2.1,
-    "investigation": -1.9, "fine": -1.8, "penalty": -1.9,
-    "worthless": -3.0, "wipeout": -2.9, "catastrophic": -2.9,
-    "complaint": -1.6, "dispute": -1.4, "grievance": -1.5,
-    "refund": -1.2, "chargeback": -1.4, "dissatisfied": -1.3,
-    "boycott": -1.8, "protest": -1.5, "backlash": -1.7,
-    "rape": -4.0, "csam": -4.0, "trafficking": -3.5,
-    "terrorism": -4.0, "murder": -4.0, "kidnapping": -3.8,
-    "extortion": -2.9, "blackmail": -2.7, "racketeering": -3.0,
-    "whistleblower": -1.5, "expose": -1.7, "leak": -1.9,
-    "conflict of interest": -1.8, "insider": -1.6, "favoritism": -1.7,
-    "nepotism": -1.9, "cronyism": -2.0, "patronage": -1.6,
-    "undisclosed": -1.4, "hidden": -1.6, "secret": -1.3,
+    "investigation": -1.9, "fine": -1.8, "penalty": -1.9,  "compliance": 1.6, "settlement": 1.3, "resolved": 1.7, "exonerated": 2.2,
+    "acquitted": 1.8, "innocent": 1.6, "justice": 1.6,
+    "safety": 2.2, "safe": 1.8, "protection": 1.6, "safeguard": 1.6,
+    "secured": 1.6, "positive environment": 1.5, "improvement": 2.0,
+    "strengthen": 1.9, "transparent": 1.6, "reform": 2.0, "ethical": 1.6,
+    "expand": 3.2, "bullish": 2.7, "bull": 2.7, "higher": 2.5, "high": 2.5,
+    "growth": 2.2, "record": 2.0, "innovation": 2.5, "resilient": 2.0,
+    "strong": 2.2, "recovery": 2.0, "opportunity": 1.8,
+    "outperform": 2.4, "beat expectations": 2.6, "surge": 2.4,
+    "rally": 2.6, "all-time high": 2.9, "momentum": 2.1,
+    "breakthrough": 2.4, "expansion": 2.3, "upgrade": 2.2,
+    "buy": 2.0, "strong buy": 2.7, "dividend increase": 2.2,
+    "profit": 2.0, "earnings beat": 2.5, "revenue growth": 2.3,
+    "guidance raise": 2.3, "market share": 2.0,
+    "competitive advantage": 2.2, "synergy": 2.0,
+    "record quarter": 2.5, "historic": 2.4,
+    "leadership": 1.8, "vision": 1.7, "execution": 1.6,
+    "collaboration": 1.9, "partnership": 2.0, "alliance": 1.8,
+    "strategic": 1.5, "long-term": 1.4, "sustainable": 1.9,
+    "resiliency": 1.8, "efficiency": 1.7, "productivity": 1.8,
+    "expanding": 2.0, "scaling": 2.1, "launch": 2.0,
+    "new product": 2.2, "innovation pipeline": 2.5,
+    "IPO": 2.0, "merger": 1.9, "acquisition": 1.8,
+    "synergies": 2.0, "integration": 1.6,
+    "customer satisfaction": 2.0, "client growth": 2.1,
+    "brand strength": 1.9, "trust": 2.0, "loyalty": 1.8,
+    "pipeline": 1.7, "milestone": 1.8, "achievement": 2.0,
+    "progress": 2.0, "positive outlook": 2.5,
+    "confidence": 2.0, "optimism": 2.3,
+    "guidance increase": 2.4, "forecast raise": 2.3,
+    "expansion plan": 2.2, "roadmap": 1.8, "booming": 2.5, "accelerating": 2.3, "record-breaking": 2.6,
+    "scaling up": 2.0, "leading": 1.9, "dominant": 2.3,
+    "pioneering": 2.4, "trailblazing": 2.5, "cutting-edge": 2.2,
+    "disruptive": 2.1, "innovative": 2.5, "game-changing": 2.6,
+    "groundbreaking": 2.5, "transformative": 2.4, "revolutionary": 2.6,
+    "successful": 2.2, "profitable": 2.3, "lucrative": 2.1,
+    "robust": 2.1, "strong performance": 2.5,
+    "growth engine": 2.3, "expansive": 2.0, "positive momentum": 2.4,
+    "tailwinds": 1.9, "bull market": 2.2, "optimistic": 2.3,
+    "confidence high": 2.4, "record profits": 2.6,
+    "exceeded expectations": 2.7, "beat estimates": 2.6,
+    "stellar": 2.5, "exceptional": 2.6, "remarkable": 2.4,
+    "impressive": 2.3, "outstanding": 2.5, "extraordinary": 2.6,
+    "strategic win": 2.2, "major milestone": 2.4,
+    "trusted": 2.0, "reputable": 1.9, "esteemed": 2.0,
+    "well-positioned": 2.2, "competitive edge": 2.3,
+    "leading position": 2.2, "market leader": 2.5,
+    "award-winning": 2.6, "top-performing": 2.4,
+    "synergy realized": 2.3, "strong demand": 2.5,
+    "expanding footprint": 2.2, "scalable": 2.1,
+    "innovative solution": 2.5, "visionary": 2.4,
+    "successful launch": 2.5, "highly profitable": 2.6,
+    "all-time record": 2.7, "boost": 2.2, }
 
-    "compliance": 1.2, "settlement": 0.8, "resolved": 1.0, "exonerated": 1.5,
-    "acquitted": 1.3, "innocent": 1.2, "justice": 1.0,
-    "safety": 1.4, "safe": 1.2, "protection": 1.0, "safeguard": 1.0,
-    "secured": 1.0, "positive environment": 0.8, "improvement": 1.0,
-    "strengthen": 0.9, "compliant": 1.0, "transparent": 0.8,
-    "rehabilitation": 1.0, "reform": 1.2, "ethical": 1.0, "responsible": 0.9, "lifts":1.3,
-    "expand":2.9, "bullish":2, "bull":2, "higher":2, "high":2,
-}
+an.lexicon.update(extra_lex)
+
 
 TICKER_MAP = {
     "Apple Inc.": "AAPL", "Microsoft Corporation": "MSFT", "Amazon.com, Inc.": "AMZN",
@@ -184,10 +190,8 @@ async def fetch_articles(article_urls):
         return await asyncio.gather(*tasks)
 
 
-def extract_article_text(article_url):
+def extract_article_text(html_data: str):
     try:
-        resp = fetch(article_url)
-        html_data = resp.read()
         soup = BeautifulSoup(html_data, "html.parser")
         for tag in soup(["script", "style", "noscript"]):
             tag.decompose()
@@ -200,12 +204,11 @@ def extract_article_text(article_url):
             candidates.extend(article.find_all("p"))
         if not candidates:
             candidates = soup.find_all("p")
-
         text = " ".join(p.get_text(" ", strip=True) for p in candidates)
-        text = re.sub(r"\s+", " ", text).strip()
-        return text
-    except Exception as e:
+        return re.sub(r"\s+", " ", text).strip()
+    except Exception:
         return ""
+
 
 async def company_data(company_name):
     timestamps = (list(run(get_name(company_name))["ds"]))
@@ -232,14 +235,15 @@ async def company_data(company_name):
 
     sentiment, published_link, date_published = 0, [], []
     for i, page in enumerate(pages):
-        text = extract_article_text(page) or titles[i]
+        text = extract_article_text(page)
+        if not text:
+            text = titles[i]
         sentiment += an.polarity_scores(text)["compound"]
         published_link.append(urls[i])
         date_published.append(dates[i])
 
     sentiment = sentiment / max(len(rss_items), 1)
 
-    sentiment = sentiment / max(count, 1)
 
     ticker = yf.Ticker(get_name(company_name))
     info = ticker.info
