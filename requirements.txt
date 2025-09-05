@@ -11,4 +11,5 @@ scikit-learn
 redis
 asyncio
 gunicorn
-aiohttp
+aiohttp==3.9.5
+
