@@ -9,5 +9,6 @@ pandas
 yfinance
 scikit-learn
 redis
+asyncio
 gunicorn
-
+aiohttp
