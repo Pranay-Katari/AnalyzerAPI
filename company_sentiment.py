@@ -8,6 +8,8 @@ from refine import run
 import numpy as np
 import yfinance as yf
 from fundamentals import get_fundamentals
+import asyncio, aiohttp
+
 
 extra_lex = {
     "lawsuit": -2.5, "litigation": -2.2, "allegation": -2.4, "allege": -2.0,
@@ -102,42 +104,41 @@ extra_lex = {
 }
 
 TICKER_MAP = {
-    # Tech
-    "Apple Inc.": "AAPL",
-    "Microsoft Corporation": "MSFT",
-    "Amazon.com, Inc.": "AMZN",
-    "NVIDIA Corporation": "NVDA",
-    "Alphabet Inc. (Class A)": "GOOGL",
-    "Alphabet Inc. (Class C)": "GOOG",
-    "Meta Platforms, Inc.": "META",
-    "Tesla, Inc.": "TSLA",
-    "Visa Inc.": "V",
-    "Mastercard Incorporated": "MA",
-    "JPMorgan Chase & Co.": "JPM",
-    "Bank of America Corporation": "BAC",
-    "Citigroup Inc.": "C",
-    "Wells Fargo & Company": "WFC",
-    "Walmart Inc.": "WMT",
-    "Procter & Gamble Company": "PG",
-    "The Coca-Cola Company": "KO",
-    "PepsiCo, Inc.": "PEP",
-    "McDonald's Corporation": "MCD",
-    "Nike, Inc.": "NKE",
-    "The Home Depot, Inc.": "HD",
-    "UnitedHealth Group Incorporated": "UNH",
-    "Johnson & Johnson": "JNJ",
-    "Pfizer Inc.": "PFE",
-    "Merck & Co., Inc.": "MRK",
-    "AbbVie Inc.": "ABBV",
-    "Zoetis Inc.": "ZTS",
-    "Exxon Mobil Corporation": "XOM",
-    "Chevron Corporation": "CVX",
-    "ConocoPhillips": "COP",
-    "The Boeing Company": "BA",
-    "Caterpillar Inc.": "CAT",
-    "United Parcel Service, Inc.": "UPS",
-    "General Electric Company": "GE",
+    "Apple Inc.": "AAPL", "Microsoft Corporation": "MSFT", "Amazon.com, Inc.": "AMZN",
+    "NVIDIA Corporation": "NVDA", "Alphabet Inc. (Class A)": "GOOGL", "Alphabet Inc. (Class C)": "GOOG",
+    "Meta Platforms, Inc.": "META", "Tesla, Inc.": "TSLA", "Adobe Inc.": "ADBE",
+    "Salesforce, Inc.": "CRM", "Oracle Corporation": "ORCL", "Intel Corporation": "INTC",
+    "Advanced Micro Devices, Inc.": "AMD", "IBM": "IBM", "Cisco Systems, Inc.": "CSCO",
+    "Broadcom Inc.": "AVGO", "Qualcomm Incorporated": "QCOM", "Shopify Inc.": "SHOP",
+    "ServiceNow, Inc.": "NOW", "Snowflake Inc.": "SNOW",
+    "JPMorgan Chase & Co.": "JPM", "Bank of America Corporation": "BAC", "Citigroup Inc.": "C",
+    "Wells Fargo & Company": "WFC", "Goldman Sachs Group, Inc.": "GS", "Morgan Stanley": "MS",
+    "Charles Schwab Corporation": "SCHW", "American Express Company": "AXP", "BlackRock, Inc.": "BLK",
+    "Visa Inc.": "V", "Mastercard Incorporated": "MA", "PayPal Holdings, Inc.": "PYPL",
+    "Johnson & Johnson": "JNJ", "Pfizer Inc.": "PFE", "Merck & Co., Inc.": "MRK",
+    "AbbVie Inc.": "ABBV", "Eli Lilly and Company": "LLY", "Amgen Inc.": "AMGN",
+    "Gilead Sciences, Inc.": "GILD", "Moderna, Inc.": "MRNA", "Bristol Myers Squibb": "BMY",
+    "UnitedHealth Group Incorporated": "UNH", "CVS Health Corporation": "CVS",
+    "Walmart Inc.": "WMT", "Costco Wholesale Corporation": "COST", "The Home Depot, Inc.": "HD",
+    "Target Corporation": "TGT", "Nike, Inc.": "NKE", "Starbucks Corporation": "SBUX",
+    "McDonald's Corporation": "MCD", "The Coca-Cola Company": "KO", "PepsiCo, Inc.": "PEP",
+    "Procter & Gamble Company": "PG", "Colgate-Palmolive Company": "CL",
+    "The Boeing Company": "BA", "Caterpillar Inc.": "CAT", "General Electric Company": "GE",
+    "3M Company": "MMM", "Lockheed Martin Corporation": "LMT", "Northrop Grumman Corporation": "NOC",
+    "Honeywell International Inc.": "HON", "Raytheon Technologies Corporation": "RTX", "Deere & Company": "DE",
+    "United Parcel Service, Inc.": "UPS", "FedEx Corporation": "FDX",
+    "Exxon Mobil Corporation": "XOM", "Chevron Corporation": "CVX", "ConocoPhillips": "COP",
+    "Schlumberger Limited": "SLB", "Halliburton Company": "HAL", "Baker Hughes Company": "BKR",
+    "Phillips 66": "PSX", "Valero Energy Corporation": "VLO",
+    "NextEra Energy, Inc.": "NEE", "Duke Energy Corporation": "DUK", "Dominion Energy, Inc.": "D",
+    "Southern Company": "SO", "Exelon Corporation": "EXC", "American Electric Power Company, Inc.": "AEP",
+    "Verizon Communications Inc.": "VZ", "AT&T Inc.": "T", "T-Mobile US, Inc.": "TMUS",
+    "Comcast Corporation": "CMCSA", "Charter Communications, Inc.": "CHTR",
+    "Airbnb, Inc.": "ABNB", "Uber Technologies, Inc.": "UBER", "Lyft, Inc.": "LYFT",
+    "Delta Air Lines, Inc.": "DAL", "American Airlines Group Inc.": "AAL", "United Airlines Holdings, Inc.": "UAL",
+    "Marriott International, Inc.": "MAR", "Hilton Worldwide Holdings Inc.": "HLT"
 }
+
 
 def get_name(company_name: str) -> str:
     return TICKER_MAP.get(company_name, company_name)
@@ -170,9 +171,18 @@ def get_article_url(google_rss_url):
     article_url = json.loads(array_string)[1]
     return article_url
 
-def fetch(url, timeout=20):
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    return urllib.request.urlopen(req, context=ctx, timeout=timeout)
+async def fetch(session, url, timeout=8):
+    try:
+        async with session.get(url, timeout=timeout) as resp:
+            return await resp.text()
+    except:
+        return ""
+
+async def fetch_articles(article_urls):
+    async with aiohttp.ClientSession(headers={"User-Agent": "Mozilla/5.0"}) as session:
+        tasks = [fetch(session, u) for u in article_urls]
+        return await asyncio.gather(*tasks)
+
 
 def extract_article_text(article_url):
     try:
@@ -197,7 +207,7 @@ def extract_article_text(article_url):
     except Exception as e:
         return ""
 
-def company_data(company_name):
+async def company_data(company_name):
     timestamps = (list(run(get_name(company_name))["ds"]))
     timestamps = [ts.strftime("%Y-%m-%d") for ts in timestamps]
     future_closings = (list(run(get_name(company_name))["y_hat"]))
@@ -212,19 +222,22 @@ def company_data(company_name):
     count, sentiment = 0, 0
     published_link, date_published, titles = [], [], []
 
-    for item in root.findall(".//item")[:10]:
-        title = html.unescape(item.findtext("title") or "")
-        link = item.findtext("link") or ""
-        pub = item.findtext("pubDate") or "n/a"
-        publisher_url = get_article_url(link)
+    rss_items = root.findall(".//item")[:10]
+    titles = [html.unescape(i.findtext("title") or "") for i in rss_items]
+    raw_urls = [i.findtext("link") or "" for i in rss_items]
+    urls = [get_article_url(u) for u in raw_urls]
+    dates = [i.findtext("pubDate") or "n/a" for i in rss_items]
 
-        article_text = extract_article_text(publisher_url) or title
-        sentiment += an.polarity_scores(article_text)["compound"]
-        count += 1
+    pages = await fetch_articles(urls)
 
-        published_link.append(publisher_url)
-        date_published.append(pub)
-        titles.append(title)
+    sentiment, published_link, date_published = 0, [], []
+    for i, page in enumerate(pages):
+        text = extract_article_text(page) or titles[i]
+        sentiment += an.polarity_scores(text)["compound"]
+        published_link.append(urls[i])
+        date_published.append(dates[i])
+
+    sentiment = sentiment / max(len(rss_items), 1)
 
     sentiment = sentiment / max(count, 1)
 
@@ -276,8 +289,8 @@ def company_data(company_name):
         "overall_sentiment": sentiment,
         "future_closings": future_closings,
         "closing_timestamps": timestamps,
-        "past_dates": past_dates,              # ✅ new field
-        "past_closings": past_closings,        # ✅ new field
+        "past_dates": past_dates,
+        "past_closings": past_closings,
         "fundamentals": fundamentals
     }
 
