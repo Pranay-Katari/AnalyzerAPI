@@ -152,100 +152,42 @@ def get_name(company_name: str) -> str:
 
 an.lexicon.update(extra_lex)
 
-ctx = ssl.create_default_context(cafile=certifi.where())
-
-
-def get_article_url(google_rss_url):
-    response = requests.get(google_rss_url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    data = soup.select_one('c-wiz[data-p]')['data-p']
-    obj = json.loads(data.replace('%.@.', '["garturlreq",'))
-    payload = {
-        'f.req': json.dumps([[['Fbv4je', json.dumps(obj[:-6] + obj[-2:]), 'null', 'generic']]])
-    }
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
-    }
-    post_response = requests.post(
-        'https://news.google.com/_/DotsSplashUi/data/batchexecute',
-        data=payload,
-        headers=headers
-    )
-    cleaned_data = post_response.text.replace(")]}'", "")
-    array_string = json.loads(cleaned_data)[0][2]
-    article_url = json.loads(array_string)[1]
-    return article_url
-
-async def fetch(session, url, timeout=8):
-    try:
-        async with session.get(url, timeout=timeout) as resp:
-            return await resp.text()
-    except:
-        return ""
-
-async def fetch_articles(article_urls):
-    async with aiohttp.ClientSession(headers={"User-Agent": "Mozilla/5.0"}) as session:
-        tasks = [fetch(session, u) for u in article_urls]
-        return await asyncio.gather(*tasks)
-
-
-def extract_article_text(html_data: str):
-    try:
-        soup = BeautifulSoup(html_data, "html.parser")
-        for tag in soup(["script", "style", "noscript"]):
-            tag.decompose()
-        candidates = []
-        main = soup.find("main")
-        if main:
-            candidates.extend(main.find_all("p"))
-        article = soup.find("article")
-        if article:
-            candidates.extend(article.find_all("p"))
-        if not candidates:
-            candidates = soup.find_all("p")
-        text = " ".join(p.get_text(" ", strip=True) for p in candidates)
-        return re.sub(r"\s+", " ", text).strip()
-    except Exception:
-        return ""
-
-
 async def company_data(company_name):
     timestamps = (list(run(get_name(company_name))["ds"]))
     timestamps = [ts.strftime("%Y-%m-%d") for ts in timestamps]
     future_closings = (list(run(get_name(company_name))["y_hat"]))
-    q = f"{company_name} stock OR {company_name} when:7d"
-    url = "https://news.google.com/rss/search?" + urllib.parse.urlencode({
-        "q": q, "hl": "en-US", "gl": "US", "ceid": "US:en"
-    })
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    data = urllib.request.urlopen(req, context=ctx, timeout=20).read().decode()
-    root = ET.fromstring(data)
-
-    count, sentiment = 0, 0
-    published_link, date_published, titles = [], [], []
-
-    rss_items = root.findall(".//item")[:10]
-    titles = [html.unescape(i.findtext("title") or "") for i in rss_items]
-    raw_urls = [i.findtext("link") or "" for i in rss_items]
-    urls = [get_article_url(u) for u in raw_urls]
-    dates = [i.findtext("pubDate") or "n/a" for i in rss_items]
-
-    pages = await fetch_articles(urls)
-
-    sentiment, published_link, date_published = 0, [], []
-    for i, page in enumerate(pages):
-        text = extract_article_text(page)
-        if not text:
-            text = titles[i]
-        sentiment += an.polarity_scores(text)["compound"]
-        published_link.append(urls[i])
-        date_published.append(dates[i])
-
-    sentiment = sentiment / max(len(rss_items), 1)
-
 
     ticker = yf.Ticker(get_name(company_name))
+
+    news_articles = ticker.news or []
+    news_articles = news_articles[:10]
+
+    titles, summaries, thumbnails, published_link, date_published = [], [], [], [], []
+    sentiment = 0
+
+    for article in news_articles:
+        content = article.get("content", {})
+
+        if content.get("contentType") == "STORY" and content.get("thumbnail"):
+            title = content.get("title", "")
+            summary = content.get("summary", "")
+            thumbnail = content.get("thumbnail", {}).get("originalUrl", "")
+            url = content.get("canonicalUrl", {}).get("url") or content.get("clickThroughUrl", {}).get("url")
+            raw_date = content.get("pubDate", "")
+
+            pub_date = raw_date.split("T")[0] if "T" in raw_date else raw_date
+
+            titles.append(title)
+            summaries.append(summary)
+            thumbnails.append(thumbnail)
+            published_link.append(url)
+            date_published.append(pub_date)
+
+            text = f"{title}. {summary}"
+            sentiment += an.polarity_scores(text)["compound"]
+
+    sentiment = sentiment / max(len(titles), 1)
+
     info = ticker.info
     hist = ticker.history(period="6mo")
 
@@ -289,6 +231,8 @@ async def company_data(company_name):
         "company_name": company_name,
         "links": published_link,
         "titles": titles,
+        "summaries": summaries,
+        "thumbnails": thumbnails,
         "dates": date_published,
         "overall_sentiment": sentiment,
         "future_closings": future_closings,
@@ -299,3 +243,8 @@ async def company_data(company_name):
     }
 
     return data
+
+if __name__ == "__main__":
+    data = asyncio.run(company_data("Chevron Corporation"))
+
+    print(json.dumps(data, indent=2, default=str))
